@@ -92,27 +92,24 @@ for (const entry of marketplace.plugins ?? []) {
   }
 }
 
-const claudeMarketplacePath = resolve(root, ".claude-plugin/marketplace.json");
-const claudeMarketplace = existsSync(claudeMarketplacePath)
-  ? loadJSON(claudeMarketplacePath)
-  : { plugins: [] };
-
-for (const entry of claudeMarketplace.plugins ?? []) {
-  const pluginDir = resolve(root, entry.source);
-  const pluginJsonPath = resolve(pluginDir, ".claude-plugin/plugin.json");
-
-  if (!existsSync(pluginJsonPath)) {
-    fail(
-      `Plugin "${entry.name}": missing .claude-plugin/plugin.json in "${entry.source}"`
-    );
-    continue;
-  }
-
-  const pluginJson = loadJSON(pluginJsonPath);
-  if (pluginJson.name && pluginJson.name !== entry.name) {
-    fail(
-      `Plugin "${entry.name}": Claude marketplace name does not match .claude-plugin/plugin.json name "${pluginJson.name}"`
-    );
+const harnessPlugins = [];
+for (const [catalog, manifest] of [
+  [".claude-plugin/marketplace.json", ".claude-plugin/plugin.json"],
+  [".agents/plugins/marketplace.json", "plugin.json"],
+]) {
+  const path = resolve(root, catalog);
+  if (!existsSync(path)) continue;
+  for (const entry of loadJSON(path).plugins ?? []) {
+    harnessPlugins.push(entry);
+    const pluginJsonPath = resolve(root, entry.source, manifest);
+    if (!existsSync(pluginJsonPath)) {
+      fail(`Plugin "${entry.name}": missing ${manifest} in "${entry.source}"`);
+      continue;
+    }
+    const pluginJson = loadJSON(pluginJsonPath);
+    if (pluginJson.name && pluginJson.name !== entry.name) {
+      fail(`Plugin "${entry.name}": ${catalog} name does not match ${manifest} name "${pluginJson.name}"`);
+    }
   }
 }
 
@@ -124,7 +121,7 @@ const manifestPaths = [
 const sources = new Map();
 for (const entry of [
   ...(marketplace.plugins ?? []),
-  ...(claudeMarketplace.plugins ?? []),
+  ...harnessPlugins,
 ]) {
   sources.set(resolve(root, entry.source), entry.name);
 }

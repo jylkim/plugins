@@ -1,0 +1,19 @@
+{
+  "name": "cursor-plugins",
+  "owner": {
+    "name": "Cursor",
+    "email": "plugins@cursor.com"
+  },
+  "plugins": [
+    {
+      "name": "pstack",
+      "source": "./harness/pstack/codex",
+      "description": "if you want to go fast, go deep first. pstack helps you write less, but higher quality code. rigorous agent workflows you can parallelize with confidence.",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
